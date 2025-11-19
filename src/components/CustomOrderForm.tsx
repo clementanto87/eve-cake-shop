@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Cloudinary } from '@cloudinary/url-gen'
 import { sendEmail, formatOrderEmail, sendCustomerConfirmation } from '../lib/emailService'
 
 interface OrderFormData {
@@ -16,10 +17,14 @@ interface OrderFormData {
   deliveryAddress: string
   specialInstructions: string
   budget: string
+  cakeImage?: File
+  imageUrl?: string
 }
 
 const CustomOrderForm = () => {
   const navigate = useNavigate()
+  const cld = new Cloudinary({ cloud: { cloudName: 'doyf9a3rl' } })
+  
   const [formData, setFormData] = useState<OrderFormData>({
     firstName: '',
     lastName: '',
@@ -33,11 +38,14 @@ const CustomOrderForm = () => {
     deliveryTime: '',
     deliveryAddress: '',
     specialInstructions: '',
-    budget: ''
+    budget: '',
+    cakeImage: undefined,
+    imageUrl: ''
   })
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [previewUrl, setPreviewUrl] = useState<string>('')
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -47,31 +55,105 @@ const CustomOrderForm = () => {
     }))
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB')
+        return
+      }
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file')
+        return
+      }
+      
+      // Create preview URL
+      const preview = URL.createObjectURL(file)
+      setPreviewUrl(preview)
+      
+      setFormData(prev => ({
+        ...prev,
+        cakeImage: file
+      }))
+    }
+  }
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', 'evelyn_cakes_preset') // IMPORTANT: Create this unsigned preset in Cloudinary Console
+      // Note: Do NOT include folder when using upload preset - it's defined in the preset itself
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/doyf9a3rl/image/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      )
+      
+      if (response.ok) {
+        const data = await response.json()
+        return data.secure_url
+      } else {
+        const errorData = await response.json()
+        console.error('Cloudinary upload error:', errorData)
+        return null
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      return null
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setSubmitStatus('idle')
 
     try {
+      // Upload image if present
+      let imageUrl = ''
+      if (formData.cakeImage) {
+        const uploadedUrl = await uploadImage(formData.cakeImage)
+        if (!uploadedUrl) {
+          throw new Error('Failed to upload image')
+        }
+        imageUrl = uploadedUrl
+      }
+
+      // Update form data with image URL
+      const orderData = { ...formData, imageUrl }
+
       // Send order notification to business
       const businessEmailContent = {
-        to: 'hello@evelynscakes.com', // Your business email
+        to: 'hello@evelynscakes.com',
         subject: `New Custom Cake Order - ${formData.firstName} ${formData.lastName}`,
-        html: formatOrderEmail(formData),
+        html: formatOrderEmail(orderData),
         replyTo: formData.email
       }
 
       const businessEmailSent = await sendEmail(businessEmailContent)
       
       // Send confirmation to customer
-      const customerEmailSent = await sendCustomerConfirmation(formData.email, formData)
+      const customerEmailSent = await sendCustomerConfirmation(formData.email, orderData)
       
       if (businessEmailSent && customerEmailSent) {
         setSubmitStatus('success')
+        
+        // Clean up preview URL
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl)
+        }
+        
         // Redirect to confirmation page after a short delay
         setTimeout(() => {
           navigate('/order-confirmation')
         }, 2000)
+        
         // Reset form
         setFormData({
           firstName: '',
@@ -86,8 +168,11 @@ const CustomOrderForm = () => {
           deliveryTime: '',
           deliveryAddress: '',
           specialInstructions: '',
-          budget: ''
+          budget: '',
+          cakeImage: undefined,
+          imageUrl: ''
         })
+        setPreviewUrl('')
       } else {
         setSubmitStatus('error')
       }
@@ -353,6 +438,40 @@ const CustomOrderForm = () => {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-background-light text-text-light dark:text-text-dark"
             placeholder="Any special requests, dietary restrictions, design ideas, etc."
           />
+        </div>
+
+        {/* Cake Image Upload */}
+        <div className="border-t pt-6">
+          <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-2">
+            Upload Cake Design Image (Optional)
+          </label>
+          <div className="space-y-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-background-light text-text-light dark:text-text-dark file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-opacity-90"
+            />
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Upload a reference image for your cake design (max 5MB, JPG/PNG)
+            </p>
+            {formData.cakeImage && (
+              <div className="mt-2">
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ✓ Selected: {formData.cakeImage.name}
+                </p>
+                {previewUrl && (
+                  <div className="mt-3">
+                    <img 
+                      src={previewUrl} 
+                      alt="Preview" 
+                      className="max-w-xs rounded-lg shadow-md"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Submit Button */}

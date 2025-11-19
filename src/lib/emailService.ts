@@ -1,3 +1,5 @@
+import emailjs from '@emailjs/browser'
+
 interface EmailData {
   to: string
   subject: string
@@ -23,17 +25,17 @@ export const sendEmail = async (emailData: EmailData): Promise<boolean> => {
     console.log('===================')
     
     // In production with EmailJS, uncomment and use this code:
-    /*
-    import emailjs from '@emailjs/browser'
     
-    const SERVICE_ID = 'your_service_id'
-    const TEMPLATE_ID = 'your_template_id'
-    const PUBLIC_KEY = 'your_public_key'
+    
+    const SERVICE_ID = 'service_qy59qqi'
+    const TEMPLATE_ID = 'template_25f1y2h'
+    const PUBLIC_KEY = 'XQ3TQZST-Fbe6awEX'
     
     const templateParams = {
       to_email: emailData.to,
       subject: emailData.subject,
-      message: emailData.html,
+      message: emailData.html.replace(/<[^>]*>/g, ''), // Strip HTML for plain text fallback
+      html_content: emailData.html, // Send full HTML for templates that support it
       reply_to: emailData.replyTo
     }
     
@@ -45,7 +47,7 @@ export const sendEmail = async (emailData: EmailData): Promise<boolean> => {
     )
     
     return response.status === 200
-    */
+    
     
     // Alternative: Use a backend API endpoint
     // If you have a backend, you could call:
@@ -105,6 +107,7 @@ export const formatOrderEmail = (orderData: {
   deliveryTime: string
   deliveryAddress: string
   specialInstructions?: string
+  imageUrl?: string
 }): string => {
   return `
     <!DOCTYPE html>
@@ -157,6 +160,21 @@ export const formatOrderEmail = (orderData: {
             <h2>Special Instructions</h2>
             <p class="value">${orderData.specialInstructions || 'None provided'}</p>
           </div>
+          
+          ${orderData.imageUrl ? `
+          <div class="section">
+            <h2>Cake Design Reference</h2>
+            <p class="value">Customer uploaded a reference image:</p>
+            <p class="value">
+              <a href="${orderData.imageUrl}" target="_blank" style="color: #ee2b4b; text-decoration: none;">
+                📷 View Cake Design Image
+              </a>
+            </p>
+            <p class="value" style="margin-top: 10px;">
+              <img src="${orderData.imageUrl}" alt="Cake Design Reference" style="max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 8px;" />
+            </p>
+          </div>
+          ` : ''}
         </div>
         <div class="footer">
           <p>This order was placed on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
@@ -185,6 +203,7 @@ export const sendCustomerConfirmation = async (
     deliveryTime: string
     deliveryAddress: string
     specialInstructions?: string
+    imageUrl?: string
   }
 ): Promise<boolean> => {
   const confirmationEmail = {

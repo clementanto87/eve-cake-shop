@@ -94,7 +94,7 @@ const About = () => {
                 className="w-full aspect-[4/3] bg-center bg-no-repeat bg-cover transition-transform duration-700 hover:scale-105"
                 data-alt="A warm, friendly photo of Evelyn smiling in her kitchen."
                 style={{
-                  backgroundImage: `url("/src/assets/images/about-evelyn.jpg")`
+                  backgroundImage: `url("/assets/images/about-evelyn.jpg")`
                 }}
               >
                 {/* Overlay gradient */}
