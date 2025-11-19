@@ -34,7 +34,13 @@ jobs:
       - name: Verify build assets
         run: |
           echo "Checking if assets were built correctly..."
+          ls -la dist/
+          echo "Checking assets directory..."
+          ls -la dist/assets/
+          echo "Checking images directory..."
           ls -la dist/assets/images/
+          echo "Checking for images in dist..."
+          find dist/ -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" | head -10
           echo "Build verification complete"
         
       - name: Deploy to Netlify

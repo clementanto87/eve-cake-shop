@@ -10,20 +10,5 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    assetsDir: 'assets',
-    rollupOptions: {
-      output: {
-        assetFileNames: (assetInfo) => {
-          const info = assetInfo.name || '';
-          let extType = info.split('.').pop();
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
-            extType = 'images';
-          }
-          return `assets/${extType}/[name]-[hash][extname]`;
-        },
-      },
-    },
-  },
   publicDir: 'public',
 })
