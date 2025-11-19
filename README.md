@@ -309,6 +309,27 @@ src/
 - **TypeScript errors:** Run `npm run lint` to check for issues
 - **Missing dependencies:** Clear cache with `rm -rf node_modules dist && npm install`
 
+### Image Deployment Issues
+
+**Problem:** Images missing after Netlify deployment
+
+**Solutions Applied:**
+1. **Vite Configuration:** Updated asset handling in `vite.config.ts`
+2. **Netlify Files:** Added `_redirects` and `_headers` for proper routing
+3. **Build Verification:** Added asset verification in GitHub Actions
+
+**Files Created:**
+- `public/_redirects`: Handles SPA routing and asset paths
+- `public/_headers`: Proper caching headers for images
+- Updated `vite.config.ts`: Improved asset organization
+
+**Verification:**
+```bash
+# Check images are in build
+npm run build
+ls -la dist/assets/images/
+```
+
 ### Deployment Issues
 - **Netlify:** Ensure all assets are in `dist` folder
 - **GitHub Pages:** Check base path configuration

@@ -31,6 +31,12 @@ jobs:
       - name: Build application
         run: npm run build
         
+      - name: Verify build assets
+        run: |
+          echo "Checking if assets were built correctly..."
+          ls -la dist/assets/images/
+          echo "Build verification complete"
+        
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3
         with:
