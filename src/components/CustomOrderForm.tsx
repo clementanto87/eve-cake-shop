@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Cloudinary } from '@cloudinary/url-gen'
 import { sendEmail, formatOrderEmail, sendCustomerConfirmation } from '../lib/emailService'
 
 interface OrderFormData {
@@ -23,7 +22,6 @@ interface OrderFormData {
 
 const CustomOrderForm = () => {
   const navigate = useNavigate()
-  const cld = new Cloudinary({ cloud: { cloudName: 'doyf9a3rl' } })
   
   const [formData, setFormData] = useState<OrderFormData>({
     firstName: '',
