@@ -11,4 +11,18 @@ export default defineConfig({
     },
   },
   publicDir: 'public',
+  build: {
+    copyPublicDir: true,
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name || '';
+          if (info.includes('assets/images/')) {
+            return 'assets/images/[name][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        },
+      },
+    },
+  },
 })
