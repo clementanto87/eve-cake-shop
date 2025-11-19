@@ -313,21 +313,28 @@ src/
 
 **Problem:** Images missing after Netlify deployment
 
-**Solutions Applied:**
-1. **Vite Configuration:** Simplified asset handling in `vite.config.ts`
-2. **Netlify Files:** Added `_redirects` and `_headers` for proper routing
-3. **Build Verification:** Added asset verification in GitHub Actions
+**Root Cause:** Absolute paths (`/assets/images/`) not working on Netlify deployment
 
-**Files Created:**
-- `public/_redirects`: Handles SPA routing and asset paths
-- `public/_headers`: Proper caching headers for images
-- Updated `vite.config.ts`: Simplified asset organization
+**Solutions Applied:**
+1. **Vite Configuration:** Added `base: './'` for relative paths
+2. **Image References:** Updated all image paths from `/assets/images/` to `./assets/images/`
+3. **Git Configuration:** Removed `public` from `.gitignore` to include deployment files
+4. **Netlify Files:** Added `_redirects` and `_headers` for proper routing
+
+**Files Updated:**
+- `vite.config.ts`: Added `base: './'` for relative paths
+- `src/data/cakes.ts`: Updated image paths to relative
+- `src/components/Hero.tsx`: Updated background image path
+- `src/components/About.tsx`: Updated background image path
+- `public/_redirects`: Simplified routing rules
+- `public/_headers`: Proper caching headers
+- `.gitignore`: Removed `public` to include deployment files
 
 **Asset Structure:**
 ```
 dist/
 ├── assets/
-│   ├── images/          # All images copied here
+│   ├── images/          # All images with relative paths
 │   │   ├── hero-bg.jpg
 │   │   ├── about-evelyn.jpg
 │   │   └── ...
@@ -336,6 +343,15 @@ dist/
 ├── index.html
 ├── _headers
 └── _redirects
+```
+
+**Image Path Changes:**
+```typescript
+// Before (absolute paths)
+image: "/assets/images/chocolate-fudge.jpg"
+
+// After (relative paths)
+image: "./assets/images/chocolate-fudge.jpg"
 ```
 
 **Verification:**

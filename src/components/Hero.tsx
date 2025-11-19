@@ -15,7 +15,7 @@ const Hero = () => {
         <div className="flex min-h-[600px] flex-col gap-8 bg-cover bg-center bg-no-repeat @[480px]:gap-10 @[480px]:rounded-2xl items-center justify-center p-8 text-center relative overflow-hidden" 
              data-alt="A beautiful, professionally baked cake with intricate frosting on a clean background." 
              style={{
-               backgroundImage: `linear-gradient(135deg, rgba(238, 43, 75, 0.9) 0%, rgba(0, 0, 0, 0.8) 100%), url("/assets/images/hero-bg.jpg")`,
+               backgroundImage: `linear-gradient(135deg, rgba(238, 43, 75, 0.9) 0%, rgba(0, 0, 0, 0.8) 100%), url("./assets/images/hero-bg.jpg")`,
                backgroundAttachment: 'fixed'
              }}>
           
